@@ -83,3 +83,53 @@ function matchTag(str: string, pos: number): CalVerFormatTag | null {
     }
     return null
 }
+
+const CALVER_TAG_REGEX_PARTS: ReadonlyMap<CalVerFormatTag, string> = new Map([
+    ['YYYY', '(\\d{4})'],
+    ['MM', '(\\d{1,2})'],
+    ['0M', '(\\d{2})'],
+    ['WW', '(\\d{1,2})'],
+    ['0W', '(\\d{2})'],
+    ['DD', '(\\d{1,2})'],
+    ['0D', '(\\d{2})'],
+    ['MINOR', '(\\d+)'],
+])
+
+export function compileFormatRegex(fmt: CalVerFormat): RegExp {
+    let pattern = '^'
+    for (let i = 0; i < fmt.tags.length; i++) {
+        const tag = fmt.tags[i]!
+        const part = CALVER_TAG_REGEX_PARTS.get(tag)
+        if (part === undefined) {
+            throw new Error('Invalid calver format: unknown tag ' + tag + '.')
+        }
+
+        if (tag === 'MINOR') {
+            // MINOR and its preceding separator are optional (hide-when-zero).
+            const sep = i > 0 ? fmt.separators[i - 1]! : ''
+            const escapedSep = escapeRegex(sep)
+            pattern += '(?:' + escapedSep + part + ')?'
+        } else {
+            if (i > 0) {
+                pattern += escapeRegex(fmt.separators[i - 1]!)
+            }
+            pattern += part
+        }
+    }
+    pattern += '$'
+    return new RegExp(pattern)
+}
+
+function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+export function inferCycleFromFormat(
+    fmt: CalVerFormat,
+): 'year' | 'month' | 'week' | 'day' {
+    const tagSet: ReadonlySet<string> = new Set(fmt.tags)
+    if (tagSet.has('DD') || tagSet.has('0D')) return 'day'
+    if (tagSet.has('WW') || tagSet.has('0W')) return 'week'
+    if (tagSet.has('MM') || tagSet.has('0M')) return 'month'
+    return 'year'
+}

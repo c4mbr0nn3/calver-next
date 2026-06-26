@@ -351,4 +351,6 @@ export {
     type CalVerFormat,
     type CalVerFormatTag,
     parseFormat,
+    compileFormatRegex,
+    inferCycleFromFormat,
 } from './format.js'

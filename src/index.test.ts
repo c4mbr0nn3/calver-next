@@ -5,6 +5,8 @@ import {
     initial,
     parse,
     parseFormat,
+    compileFormatRegex,
+    inferCycleFromFormat,
     toString,
     valid,
     nt,
@@ -237,4 +239,47 @@ test('parseFormat', () => {
     expect(() => parseFormat('YYYY.YYYY.MINOR')).toThrowError()
     expect(() => parseFormat('YYYY.0M.0M')).toThrowError()
     expect(() => parseFormat('YYYY.MINOR.MINOR')).toThrowError()
+})
+
+test('compileFormatRegex', () => {
+    // YYYY only
+    const fmtYear = parseFormat('YYYY')
+    const reYear = compileFormatRegex(fmtYear)
+    expect(reYear.test('2024')).toBe(true)
+    expect(reYear.test('2024.1')).toBe(false)
+    expect(reYear.test('202')).toBe(false)
+
+    // YYYY.0M.MINOR
+    const fmtMonth = parseFormat('YYYY.0M.MINOR')
+    const reMonth = compileFormatRegex(fmtMonth)
+    expect(reMonth.test('2024.04.1')).toBe(true)
+    // MINOR absent in string sets minor=0; the MINOR group (and its preceding separator) must be optional in the regex.
+    expect(reMonth.test('2024.04')).toBe(true)
+    expect(reMonth.test('2024.4')).toBe(false) // 0M requires 2 digits
+    expect(reMonth.test('2024.13.1')).toBe(true) // range check happens in parse, not regex
+    expect(reMonth.test('2024.04.123')).toBe(true)
+
+    // YYYY.MM-DD (no MINOR)
+    const fmtMonthDay = parseFormat('YYYY.MM-DD')
+    const reMonthDay = compileFormatRegex(fmtMonthDay)
+    expect(reMonthDay.test('2024.4-16')).toBe(true)
+    expect(reMonthDay.test('2024.04-16')).toBe(true)
+    expect(reMonthDay.test('2024.4.16')).toBe(false)
+
+    // YYYY.0W.MINOR
+    const fmtWeek = parseFormat('YYYY.0W.MINOR')
+    const reWeek = compileFormatRegex(fmtWeek)
+    expect(reWeek.test('2024.06')).toBe(true) // MINOR optional, 0W present
+    expect(reWeek.test('2024.06.1')).toBe(true)
+    expect(reWeek.test('2024.6')).toBe(false) // 0W requires 2 digits
+})
+
+test('inferCycleFromFormat', () => {
+    expect(inferCycleFromFormat(parseFormat('YYYY'))).toBe('year')
+    expect(inferCycleFromFormat(parseFormat('YYYY.MM'))).toBe('month')
+    expect(inferCycleFromFormat(parseFormat('YYYY.0M.MINOR'))).toBe('month')
+    expect(inferCycleFromFormat(parseFormat('YYYY.0W'))).toBe('week')
+    expect(inferCycleFromFormat(parseFormat('YYYY.WW.MINOR'))).toBe('week')
+    expect(inferCycleFromFormat(parseFormat('YYYY.MM.DD'))).toBe('day')
+    expect(inferCycleFromFormat(parseFormat('YYYY.0M.0D.MINOR'))).toBe('day')
 })
