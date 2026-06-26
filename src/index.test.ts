@@ -7,6 +7,7 @@ import {
     parseFormat,
     compileFormatRegex,
     inferCycleFromFormat,
+    toStringWithFormat,
     toString,
     valid,
     nt,
@@ -282,4 +283,84 @@ test('inferCycleFromFormat', () => {
     expect(inferCycleFromFormat(parseFormat('YYYY.WW.MINOR'))).toBe('week')
     expect(inferCycleFromFormat(parseFormat('YYYY.MM.DD'))).toBe('day')
     expect(inferCycleFromFormat(parseFormat('YYYY.0M.0D.MINOR'))).toBe('day')
+})
+
+test('toStringWithFormat', () => {
+    // YYYY.0M.0D.MINOR — hide zero minor (default)
+    const fmt1 = parseFormat('YYYY.0M.0D.MINOR')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 7, minor: 0 },
+            fmt1,
+            false,
+        ),
+    ).toBe('2024.04.07')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 7, minor: 1 },
+            fmt1,
+            false,
+        ),
+    ).toBe('2024.04.07.1')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 7, minor: 205 },
+            fmt1,
+            false,
+        ),
+    ).toBe('2024.04.07.205')
+
+    // YYYY.0M.0D.MINOR — show zero minor
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 7, minor: 0 },
+            fmt1,
+            true,
+        ),
+    ).toBe('2024.04.07.0')
+
+    // YYYY.MM-DD (no MINOR tag)
+    const fmt2 = parseFormat('YYYY.MM-DD')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 16, minor: 0 },
+            fmt2,
+            false,
+        ),
+    ).toBe('2024.4-16')
+
+    // YYYY only
+    const fmt3 = parseFormat('YYYY')
+    expect(toStringWithFormat({ year: 2024, minor: 0 }, fmt3, false)).toBe(
+        '2024',
+    )
+
+    // YYYY.0W.MINOR
+    const fmt4 = parseFormat('YYYY.0W.MINOR')
+    expect(
+        toStringWithFormat({ year: 2024, week: 6, minor: 0 }, fmt4, false),
+    ).toBe('2024.06')
+    expect(
+        toStringWithFormat({ year: 2024, week: 6, minor: 3 }, fmt4, false),
+    ).toBe('2024.06.3')
+    expect(
+        toStringWithFormat({ year: 2024, week: 6, minor: 0 }, fmt4, true),
+    ).toBe('2024.06.0')
+
+    // YYYY.MM.DD-MINOR with showZeroMinor (c4mbr0nn3's case)
+    const fmt5 = parseFormat('YYYY.MM.DD-MINOR')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 16, minor: 0 },
+            fmt5,
+            true,
+        ),
+    ).toBe('2024.4.16-0')
+    expect(
+        toStringWithFormat(
+            { year: 2024, month: 4, day: 16, minor: 5 },
+            fmt5,
+            false,
+        ),
+    ).toBe('2024.4.16-5')
 })

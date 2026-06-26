@@ -353,4 +353,5 @@ export {
     parseFormat,
     compileFormatRegex,
     inferCycleFromFormat,
+    toStringWithFormat,
 } from './format.js'

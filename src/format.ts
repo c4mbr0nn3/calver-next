@@ -16,6 +16,8 @@ export interface CalVerFormat {
     separators: string[]
 }
 
+import type { CalVerObject } from './index.js'
+
 export function parseFormat(format: string): CalVerFormat {
     if (format.length === 0) {
         throw new Error('Invalid calver format: format string is empty.')
@@ -132,4 +134,57 @@ export function inferCycleFromFormat(
     if (tagSet.has('WW') || tagSet.has('0W')) return 'week'
     if (tagSet.has('MM') || tagSet.has('0M')) return 'month'
     return 'year'
+}
+
+export function toStringWithFormat(
+    obj: CalVerObject,
+    fmt: CalVerFormat,
+    showZeroMinor: boolean,
+): string {
+    let result = ''
+    for (let i = 0; i < fmt.tags.length; i++) {
+        const tag = fmt.tags[i]!
+
+        if (tag === 'MINOR') {
+            if (showZeroMinor || obj.minor > 0) {
+                const sep = i > 0 ? fmt.separators[i - 1]! : ''
+                result += sep + obj.minor.toString(10)
+            }
+            continue
+        }
+
+        if (i > 0) {
+            result += fmt.separators[i - 1]!
+        }
+
+        const value = getTagValue(obj, tag)
+        if (value === null) {
+            // Tag present in format but value missing from obj — treat as 0
+            // padded or unpadded based on tag.
+            result += tag.startsWith('0') ? '00' : '0'
+        } else {
+            result += tag.startsWith('0')
+                ? value.toString(10).padStart(2, '0')
+                : value.toString(10)
+        }
+    }
+    return result
+}
+
+function getTagValue(obj: CalVerObject, tag: CalVerFormatTag): number | null {
+    switch (tag) {
+        case 'YYYY':
+            return obj.year
+        case 'MM':
+        case '0M':
+            return typeof obj.month === 'number' ? obj.month : null
+        case 'WW':
+        case '0W':
+            return typeof obj.week === 'number' ? obj.week : null
+        case 'DD':
+        case '0D':
+            return typeof obj.day === 'number' ? obj.day : null
+        default:
+            return null
+    }
 }
