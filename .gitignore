@@ -108,3 +108,13 @@ typings/
 
 # TernJS port file
 .tern-port
+
+# Superpowers
+**/Superpowers
+
+# Superpowers workspace (internal)
+.superpowers/
+
+# Internal design docs
+docs/superpowers/
+docs/issue-26-calver-formats.md
