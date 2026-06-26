@@ -96,6 +96,74 @@ calver 2024-32.204 --cycle week # or -c week
 
 Outputs `2024-32.205` or `2024-[current week of the year]`.
 
+### Custom formats
+
+By default, node-calver uses the `YYYY-MM-DD.MINOR` format (dash-separated
+calendar portion, dot-separated minor counter). You can specify a custom
+format string using the `format` option in the settings object (or the
+`-f, --format` CLI flag).
+
+A format string is a sequence of **tags** and **literal separators**.
+Tags are drawn from this vocabulary:
+
+| Tag     | Meaning                              | Example |
+| ------- | ------------------------------------ | ------- |
+| `YYYY`  | 4-digit year                         | `2024`  |
+| `MM`    | 1–2 digit month (1-12)               | `4`     |
+| `0M`    | 2-digit zero-padded month            | `04`    |
+| `WW`    | 1–2 digit ISO week (1-54)            | `32`    |
+| `0W`    | 2-digit zero-padded week             | `09`    |
+| `DD`    | 1–2 digit day (1-31)                 | `7`     |
+| `0D`    | 2-digit zero-padded day              | `07`    |
+| `MINOR` | minor counter (non-negative integer) | `205`   |
+
+Any characters between tags are literal separators, preserved verbatim in
+the output.
+
+```ts
+import * as calver from 'calver'
+
+calver.cycle('2024.04.07.1', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' })
+// → '2024.04.07.2' (or next day/month/year depending on current date)
+
+calver.initial({ cycle: 'day', format: 'YYYY.0M.0D.MINOR' })
+// → '2024.06.26' (current UTC date, zero minor hidden by default)
+
+calver.valid('2024.04.07.1', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' })
+// → '2024.04.07.1'
+```
+
+```sh
+calver 2024.04.07.1 --format YYYY.0M.0D.MINOR
+calver initial --cycle day --format YYYY.0M.0D.MINOR
+calver valid 2024.04.07.1 --format YYYY.0M.0D.MINOR
+```
+
+When a `format` is provided, the release cycle is inferred from the
+calendar tags present (`YYYY` → year, `+MM/0M` → month, `+WW/0W` → week,
+`+DD/0D` → day). An explicit `--cycle` option overrides inference and is
+validated against the format.
+
+#### Showing zero minor
+
+By default, the `MINOR` tag (and its preceding separator) is omitted from
+the output when the minor counter is `0`, matching the library's default
+behavior. Use the `showZeroMinor` option (or the `-z, --show-zero-minor`
+CLI flag) to always emit `MINOR`, even when it is `0`:
+
+```ts
+calver.initial({
+    cycle: 'day',
+    format: 'YYYY.0M.0D.MINOR',
+    showZeroMinor: true,
+})
+// → '2024.06.26.0'
+```
+
+```sh
+calver initial --cycle day --format YYYY.0M.0D.MINOR --show-zero-minor
+```
+
 ### Minor releases
 
 A minor method just increments the minor portion of the version and leaves the date portion as it is.
