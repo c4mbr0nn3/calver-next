@@ -4,7 +4,7 @@ var commander = require('commander')
 var index = require('./index.cjs')
 
 var name = 'calver'
-var version = '24.0.2'
+var version = '24.1.0'
 var description =
     'Calendar based software versioning library as node.js module and with cli support.'
 var type = 'module'
@@ -106,8 +106,23 @@ program
         parseCycleArg,
         'auto',
     )
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .option(
+        '-z, --show-zero-minor',
+        'always emit MINOR even when it is 0',
+        false,
+    )
     .action((str, options) => {
-        const next = index.cycle(str, { cycle: options.cycle })
+        const next = index.cycle(str, {
+            cycle: options.cycle,
+            ...(options.format !== void 0 ? { format: options.format } : {}),
+            ...(options.showZeroMinor
+                ? { showZeroMinor: options.showZeroMinor }
+                : {}),
+        })
         console.log(next)
     })
 program
@@ -117,8 +132,23 @@ program
         'release cycle. one of ' + index.CALVER_CYCLES.join(', '),
         parseCycleArgStrict,
     )
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .option(
+        '-z, --show-zero-minor',
+        'always emit MINOR even when it is 0',
+        false,
+    )
     .action((options) => {
-        const initialVersion = index.initial({ cycle: options.cycle })
+        const initialVersion = index.initial({
+            cycle: options.cycle,
+            ...(options.format !== void 0 ? { format: options.format } : {}),
+            ...(options.showZeroMinor
+                ? { showZeroMinor: options.showZeroMinor }
+                : {}),
+        })
         console.log(initialVersion)
     })
 program
@@ -130,8 +160,15 @@ program
         parseCycleArg,
         'auto',
     )
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
     .action((str, options) => {
-        const validVersion = index.valid(str, { cycle: options.cycle })
+        const validVersion = index.valid(str, {
+            cycle: options.cycle,
+            ...(options.format !== void 0 ? { format: options.format } : {}),
+        })
         console.log(validVersion)
     })
 program
@@ -144,8 +181,15 @@ program
         parseCycleArg,
         'auto',
     )
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
     .action((str, str2, options) => {
-        const isNewer = index.nt(str, str2, { cycle: options.cycle })
+        const isNewer = index.nt(str, str2, {
+            cycle: options.cycle,
+            ...(options.format !== void 0 ? { format: options.format } : {}),
+        })
         if (!isNewer) {
             throw new Error(
                 'The version ' + str + ' is not newer than the ' + str2,
@@ -163,8 +207,15 @@ program
         parseCycleArg,
         'auto',
     )
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
     .action((str, str2, options) => {
-        const isNewer = index.ot(str, str2, { cycle: options.cycle })
+        const isNewer = index.ot(str, str2, {
+            cycle: options.cycle,
+            ...(options.format !== void 0 ? { format: options.format } : {}),
+        })
         if (!isNewer) {
             throw new Error(
                 'The version ' + str + ' is not older than the ' + str2,
