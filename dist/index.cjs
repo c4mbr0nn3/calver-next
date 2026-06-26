@@ -176,6 +176,10 @@ function initial(settings) {
     }
     if (settings.format !== void 0) {
         const fmt = parseFormat(settings.format)
+        const inferred = inferCycleFromFormat(fmt)
+        if (settings.cycle !== 'auto' && settings.cycle !== inferred) {
+            throw new Error('Version and cycle mismatch.')
+        }
         const tagSet = new Set(fmt.tags)
         if (tagSet.has('MM') || tagSet.has('0M'))
             result.month = currentDate.month
@@ -279,6 +283,11 @@ function cycle(str, settings = { cycle: 'auto' }) {
         next.day = currentDate.day
         next.minor = 0
     } else {
+        if (fmt !== void 0 && !fmt.tags.includes('MINOR')) {
+            throw new Error(
+                'Cannot increment: the format has no MINOR tag. Add MINOR to the format string to allow same-period increments.',
+            )
+        }
         next.minor += 1
     }
     return toString(next, fmt, settings.showZeroMinor ?? false)
@@ -343,15 +352,13 @@ function parse(str, settings = { cycle: 'auto' }) {
         const fmt = parseFormat(settings.format)
         const re = compileFormatRegex(fmt)
         const match = str.match(re)
-        if (match) {
-            return parseWithFormatMatch(settings, fmt, match)
+        if (!match) {
+            throw new Error(
+                "Invalid calver string: doesn't match format " +
+                    settings.format,
+            )
         }
-        const result = parseStandard(str, { cycle: 'auto' })
-        const inferred = inferCycleFromFormat(fmt)
-        if (settings.cycle !== 'auto' && settings.cycle !== inferred) {
-            throw new Error('Version and cycle mismatch.')
-        }
-        return result
+        return parseWithFormatMatch(settings, fmt, match)
     }
     return parseStandard(str, settings)
 }
