@@ -27,10 +27,36 @@ program
         parseCycleArg,
         'auto',
     )
-    .action((str: string, options: { cycle: CalVerCycle }) => {
-        const next = cycle(str, { cycle: options.cycle })
-        console.log(next)
-    })
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .option(
+        '-z, --show-zero-minor',
+        'always emit MINOR even when it is 0',
+        false,
+    )
+    .action(
+        (
+            str: string,
+            options: {
+                cycle: CalVerCycle
+                format?: string
+                showZeroMinor: boolean
+            },
+        ) => {
+            const next = cycle(str, {
+                cycle: options.cycle,
+                ...(options.format !== undefined
+                    ? { format: options.format }
+                    : {}),
+                ...(options.showZeroMinor
+                    ? { showZeroMinor: options.showZeroMinor }
+                    : {}),
+            })
+            console.log(next)
+        },
+    )
 
 program
     .command('initial')
@@ -39,10 +65,33 @@ program
         'release cycle. one of ' + CALVER_CYCLES.join(', '),
         parseCycleArgStrict,
     )
-    .action((options: { cycle: CalVerCycle }) => {
-        const initialVersion = initial({ cycle: options.cycle })
-        console.log(initialVersion)
-    })
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .option(
+        '-z, --show-zero-minor',
+        'always emit MINOR even when it is 0',
+        false,
+    )
+    .action(
+        (options: {
+            cycle: CalVerCycle
+            format?: string
+            showZeroMinor: boolean
+        }) => {
+            const initialVersion = initial({
+                cycle: options.cycle,
+                ...(options.format !== undefined
+                    ? { format: options.format }
+                    : {}),
+                ...(options.showZeroMinor
+                    ? { showZeroMinor: options.showZeroMinor }
+                    : {}),
+            })
+            console.log(initialVersion)
+        },
+    )
 
 program
     .command('valid')
@@ -53,8 +102,15 @@ program
         parseCycleArg,
         'auto',
     )
-    .action((str: string, options: { cycle: CalVerCycle }) => {
-        const validVersion = valid(str, { cycle: options.cycle })
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .action((str: string, options: { cycle: CalVerCycle; format?: string }) => {
+        const validVersion = valid(str, {
+            cycle: options.cycle,
+            ...(options.format !== undefined ? { format: options.format } : {}),
+        })
         console.log(validVersion)
     })
 
@@ -68,15 +124,30 @@ program
         parseCycleArg,
         'auto',
     )
-    .action((str: string, str2: string, options: { cycle: CalVerCycle }) => {
-        const isNewer = nt(str, str2, { cycle: options.cycle })
-        if (!isNewer) {
-            throw new Error(
-                'The version ' + str + ' is not newer than the ' + str2,
-            )
-        }
-        console.log(str)
-    })
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .action(
+        (
+            str: string,
+            str2: string,
+            options: { cycle: CalVerCycle; format?: string },
+        ) => {
+            const isNewer = nt(str, str2, {
+                cycle: options.cycle,
+                ...(options.format !== undefined
+                    ? { format: options.format }
+                    : {}),
+            })
+            if (!isNewer) {
+                throw new Error(
+                    'The version ' + str + ' is not newer than the ' + str2,
+                )
+            }
+            console.log(str)
+        },
+    )
 
 program
     .command('ot')
@@ -88,15 +159,30 @@ program
         parseCycleArg,
         'auto',
     )
-    .action((str: string, str2: string, options: { cycle: CalVerCycle }) => {
-        const isNewer = ot(str, str2, { cycle: options.cycle })
-        if (!isNewer) {
-            throw new Error(
-                'The version ' + str + ' is not older than the ' + str2,
-            )
-        }
-        console.log(str)
-    })
+    .option(
+        '-f, --format <string>',
+        'custom format string (e.g. YYYY.0M.0D.MINOR)',
+    )
+    .action(
+        (
+            str: string,
+            str2: string,
+            options: { cycle: CalVerCycle; format?: string },
+        ) => {
+            const isNewer = ot(str, str2, {
+                cycle: options.cycle,
+                ...(options.format !== undefined
+                    ? { format: options.format }
+                    : {}),
+            })
+            if (!isNewer) {
+                throw new Error(
+                    'The version ' + str + ' is not older than the ' + str2,
+                )
+            }
+            console.log(str)
+        },
+    )
 
 program
     .command('prefix')
