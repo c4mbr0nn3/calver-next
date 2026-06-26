@@ -13,15 +13,15 @@ import {
     isCycleValid,
 } from './index.js'
 
-var name = 'calver'
-var version = '24.1.0'
+var name = 'calver-next'
+var version = '25.6.0'
 var description =
-    'Calendar based software versioning library as node.js module and with cli support.'
+    'Calendar based software versioning library with custom format string support. Fork of node-calver.'
 var type = 'module'
 var main = './dist/index.js'
 var types = './dist/index.d.ts'
 var bin = {
-    calver: './dist/cli.js',
+    'calver-next': './dist/cli.js',
 }
 var scripts = {
     build: 'pkgroll --target=es2020 --target=node16 --clean-dist',
@@ -40,27 +40,37 @@ var exports = {
         default: './dist/index.js',
     },
 }
-var files = ['dist/*', 'package.json']
+var files = ['dist/*', 'LICENSE', 'package.json']
 var browserslist = ['defaults', '> 0.1%', 'ie 10', 'not ie 9']
 var repository = {
     type: 'git',
-    url: 'git+https://github.com/muratgozel/node-calver.git',
+    url: 'git+https://github.com/c4mbr0nn3/calver-next.git',
 }
-var keywords = ['calver', 'calendar', 'versioning', 'semver']
-var author = {
-    name: 'Murat Gözel',
-    email: 'murat@gozel.com.tr',
-    url: 'https://gozel.com.tr',
-}
-var funding = {
-    type: 'patreon',
-    url: 'https://patreon.com/muratgozel',
-}
+var keywords = [
+    'calver',
+    'calendar',
+    'versioning',
+    'semver',
+    'calver-format',
+    'calver-next',
+    'fork',
+]
+var contributors = [
+    {
+        name: 'Murat Gözel',
+        email: 'murat@gozel.com.tr',
+        url: 'https://gozel.com.tr',
+    },
+    {
+        name: 'c4mbr0nn3',
+        url: 'https://github.com/c4mbr0nn3',
+    },
+]
 var license = 'MIT'
 var bugs = {
-    url: 'https://github.com/muratgozel/node-calver/issues',
+    url: 'https://github.com/c4mbr0nn3/calver-next/issues',
 }
-var homepage = 'https://github.com/muratgozel/node-calver#readme'
+var homepage = 'https://github.com/c4mbr0nn3/calver-next#readme'
 var devDependencies = {
     '@commitlint/cli': '^19.3.0',
     '@commitlint/config-conventional': '^19.2.2',
@@ -69,7 +79,6 @@ var devDependencies = {
     eslint: '^9.3.0',
     husky: '^9.0.11',
     'lint-staged': '^15.2.2',
-    'node-releaser': '^2.1.4',
     pkgroll: '^2.1.0',
     prettier: '^3.2.5',
     typescript: '^5.4.5',
@@ -96,8 +105,7 @@ var pkg = {
     browserslist: browserslist,
     repository: repository,
     keywords: keywords,
-    author: author,
-    funding: funding,
+    contributors: contributors,
     license: license,
     bugs: bugs,
     homepage: homepage,

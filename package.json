@@ -1,12 +1,12 @@
 {
-    "name": "calver",
-    "version": "24.1.0",
-    "description": "Calendar based software versioning library as node.js module and with cli support.",
+    "name": "calver-next",
+    "version": "25.6.0",
+    "description": "Calendar based software versioning library with custom format string support. Fork of node-calver.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "bin": {
-        "calver": "./dist/cli.js"
+        "calver-next": "./dist/cli.js"
     },
     "scripts": {
         "build": "pkgroll --target=es2020 --target=node16 --clean-dist",
@@ -27,6 +27,7 @@
     },
     "files": [
         "dist/*",
+        "LICENSE",
         "package.json"
     ],
     "lint-staged": {
@@ -40,28 +41,33 @@
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/muratgozel/node-calver.git"
+        "url": "git+https://github.com/c4mbr0nn3/calver-next.git"
     },
     "keywords": [
         "calver",
         "calendar",
         "versioning",
-        "semver"
+        "semver",
+        "calver-format",
+        "calver-next",
+        "fork"
     ],
-    "author": {
-        "name": "Murat Gözel",
-        "email": "murat@gozel.com.tr",
-        "url": "https://gozel.com.tr"
-    },
-    "funding": {
-        "type": "patreon",
-        "url": "https://patreon.com/muratgozel"
-    },
+    "contributors": [
+        {
+            "name": "Murat Gözel",
+            "email": "murat@gozel.com.tr",
+            "url": "https://gozel.com.tr"
+        },
+        {
+            "name": "c4mbr0nn3",
+            "url": "https://github.com/c4mbr0nn3"
+        }
+    ],
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/muratgozel/node-calver/issues"
+        "url": "https://github.com/c4mbr0nn3/calver-next/issues"
     },
-    "homepage": "https://github.com/muratgozel/node-calver#readme",
+    "homepage": "https://github.com/c4mbr0nn3/calver-next#readme",
     "devDependencies": {
         "@commitlint/cli": "^19.3.0",
         "@commitlint/config-conventional": "^19.2.2",
@@ -70,7 +76,6 @@
         "eslint": "^9.3.0",
         "husky": "^9.0.11",
         "lint-staged": "^15.2.2",
-        "node-releaser": "^2.1.4",
         "pkgroll": "^2.1.0",
         "prettier": "^3.2.5",
         "typescript": "^5.4.5",
