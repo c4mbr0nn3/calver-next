@@ -14,16 +14,16 @@ I recommend [this article by Donald Stufft](https://caremad.io/posts/2016/02/ver
 
 The format consist of two parts. The calendar part and the minor changes counter. The calendar part describes software's release cycle. The minor part is just a counter over the main release. Take **2024-4.104** for example; the year and the month separated by a dash and the minor counter separated by a dot. So the general template for the format is `YYYY-MM-DD.MINOR`. One might choose:
 
--   YYYY for yearly release cycle
--   YYYY-MM for monthly release cycle
--   YYYY-WW for weekly release cycle
--   YYYY-MM-DD for daily release cycle
+- YYYY for yearly release cycle
+- YYYY-MM for monthly release cycle
+- YYYY-WW for weekly release cycle
+- YYYY-MM-DD for daily release cycle
 
 The releases sent before the next release time period, counts as minor changes and therefore it increments the minor part of the version.
 
 ## Prerequisites
 
--   What is your release cycle? Decide how frequently you will release your software. Excluding minor changes such as security fixes or other kind of features and fixes.
+- What is your release cycle? Decide how frequently you will release your software. Excluding minor changes such as security fixes or other kind of features and fixes.
 
 ## Install
 
@@ -41,10 +41,10 @@ The library can be used both as a node.js module and a cli app. Both usages docu
 
 There are some defaults to keep in mind while using calver-next.
 
--   Minor counter is 0 by default and it's hidden from the output if it's zero.
--   The values of calendar tags computed based on UTC time.
--   The year always exists in the output and can't be omitted. The other tags is up to a user.
--   When month, week or day isn't specified, they are considered as zero and this is important when comparing dates.
+- Minor counter is 0 by default and it's hidden from the output if it's zero.
+- The values of calendar tags computed based on UTC time.
+- The year always exists in the output and can't be omitted. The other tags is up to a user.
+- When month, week or day isn't specified, they are considered as zero and this is important when comparing dates.
 
 ### Cycles
 

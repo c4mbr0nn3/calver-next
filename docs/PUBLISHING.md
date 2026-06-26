@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
--   Node.js installed
--   An npm account ([sign up](https://www.npmjs.com/signup))
+- Node.js installed
+- An npm account ([sign up](https://www.npmjs.com/signup))
 
 ## First-time setup
 
@@ -46,11 +46,11 @@ git push
 
 ## Checklist before publishing
 
--   [ ] `pnpm test` passes
--   [ ] `pnpm run build` passes
--   [ ] `package.json` version is higher than the published one
--   [ ] `dist/` is regenerated (`pnpm run build`)
--   [ ] Changes are committed to git
+- [ ] `pnpm test` passes
+- [ ] `pnpm run build` passes
+- [ ] `package.json` version is higher than the published one
+- [ ] `dist/` is regenerated (`pnpm run build`)
+- [ ] Changes are committed to git
 
 ## Verify it's live
 
