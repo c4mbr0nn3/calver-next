@@ -4,6 +4,7 @@ import {
     cycle,
     initial,
     parse,
+    parseFormat,
     toString,
     valid,
     nt,
@@ -192,4 +193,48 @@ test('suffix', () => {
 
 test('clean', () => {
     expect(clean(' a=2024-4.123-something ')).toBe('2024-4.123')
+})
+
+test('parseFormat', () => {
+    // Simple formats
+    expect(parseFormat('YYYY')).toStrictEqual({
+        tags: ['YYYY'],
+        separators: [],
+    })
+    expect(parseFormat('YYYY.MM')).toStrictEqual({
+        tags: ['YYYY', 'MM'],
+        separators: ['.'],
+    })
+    expect(parseFormat('YYYY.MM-DD')).toStrictEqual({
+        tags: ['YYYY', 'MM', 'DD'],
+        separators: ['.', '-'],
+    })
+    expect(parseFormat('YYYY.0M.0D.MINOR')).toStrictEqual({
+        tags: ['YYYY', '0M', '0D', 'MINOR'],
+        separators: ['.', '.', '.'],
+    })
+
+    // Zero-padded tags
+    expect(parseFormat('YYYY.0W.MINOR')).toStrictEqual({
+        tags: ['YYYY', '0W', 'MINOR'],
+        separators: ['.', '.'],
+    })
+
+    // Multi-char separators (greedy: consecutive non-tag chars accumulate)
+    expect(parseFormat('YYYY..MM')).toStrictEqual({
+        tags: ['YYYY', 'MM'],
+        separators: ['..'],
+    })
+
+    // MINOR absent
+    expect(parseFormat('YYYY.0M')).toStrictEqual({
+        tags: ['YYYY', '0M'],
+        separators: ['.'],
+    })
+
+    // Errors
+    expect(() => parseFormat('')).toThrowError()
+    expect(() => parseFormat('YYYY.YYYY.MINOR')).toThrowError()
+    expect(() => parseFormat('YYYY.0M.0M')).toThrowError()
+    expect(() => parseFormat('YYYY.MINOR.MINOR')).toThrowError()
 })
