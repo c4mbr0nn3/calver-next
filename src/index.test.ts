@@ -466,3 +466,131 @@ test('toString with format', () => {
     expect(toString({ year: 2024, month: 4, minor: 0 })).toBe('2024-4')
     expect(toString({ year: 2024, month: 4, minor: 123 })).toBe('2024-4.123')
 })
+
+test('cycle with format', () => {
+    const currentDate = new Date(Date.UTC(2000, 1, 10, 12, 0, 0))
+    vi.setSystemTime(currentDate)
+
+    // YYYY.0M.0D.MINOR — day cycle inferred, hide zero minor
+    expect(
+        cycle('2000-01-05', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toBe('2000.02.10')
+    expect(
+        cycle('2000.02.10', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toBe('2000.02.10.1')
+    expect(
+        cycle('2000.02.10.5', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toBe('2000.02.10.6')
+
+    // YYYY.0M.0D.MINOR — show zero minor
+    expect(
+        cycle('2000-01-05', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+            showZeroMinor: true,
+        }),
+    ).toBe('2000.02.10.0')
+
+    // YYYY-MM-DD-MINOR (c4mbr0nn3's case)
+    expect(
+        cycle('2000-02-10', { cycle: 'auto', format: 'YYYY-MM-DD-MINOR' }),
+    ).toBe('2000-2-10-1')
+    expect(
+        cycle('2000-01-05', {
+            cycle: 'auto',
+            format: 'YYYY-MM-DD-MINOR',
+            showZeroMinor: true,
+        }),
+    ).toBe('2000-2-10-0')
+
+    // YYYY.0W.MINOR — week cycle inferred
+    expect(cycle('1999.06', { cycle: 'auto', format: 'YYYY.0W.MINOR' })).toBe(
+        '2000.06',
+    )
+    expect(cycle('2000.06', { cycle: 'auto', format: 'YYYY.0W.MINOR' })).toBe(
+        '2000.06.1',
+    )
+
+    // YYYY.MM (month cycle, no MINOR)
+    expect(cycle('1999.01', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
+        '2000.2',
+    )
+    expect(cycle('2000.01', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
+        '2000.2',
+    )
+    expect(cycle('2000.02', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
+        '2000.2',
+    ) // same month, no minor tag — stays same
+    // Note: without MINOR tag, same-period bumps can't increment. This
+    // is a limitation — users wanting minor bumps must include MINOR in format.
+})
+
+test('initial with format', () => {
+    const currentDate = new Date(Date.UTC(2000, 1, 10, 12, 0, 0))
+    vi.setSystemTime(currentDate)
+
+    expect(initial({ cycle: 'year', format: 'YYYY' })).toBe('2000')
+    expect(initial({ cycle: 'month', format: 'YYYY.0M.MINOR' })).toBe('2000.02')
+    expect(initial({ cycle: 'day', format: 'YYYY.0M.0D.MINOR' })).toBe(
+        '2000.02.10',
+    )
+    expect(
+        initial({
+            cycle: 'day',
+            format: 'YYYY.0M.0D.MINOR',
+            showZeroMinor: true,
+        }),
+    ).toBe('2000.02.10.0')
+    expect(initial({ cycle: 'month', format: 'YYYY.MM.DD-MINOR' })).toBe(
+        '2000.2.10',
+    )
+    expect(
+        initial({
+            cycle: 'month',
+            format: 'YYYY.MM.DD-MINOR',
+            showZeroMinor: true,
+        }),
+    ).toBe('2000.2.10-0')
+})
+
+test('valid with format', () => {
+    expect(
+        valid('2024.04.07.1', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toBe('2024.04.07.1')
+    expect(
+        valid('2024.04.07', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toBe('2024.04.07')
+    expect(() =>
+        valid('2024.4.07.1', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+    ).toThrowError()
+    expect(() =>
+        valid('2024.04.07', { cycle: 'week', format: 'YYYY.0M.0D.MINOR' }),
+    ).toThrowError()
+})
+
+test('nt with format', () => {
+    expect(
+        nt('2024.04.07.2', '2024.04.07.1', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toBe(true)
+    expect(
+        nt('2024.04.07.1', '2024.04.07.2', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toBe(false)
+    expect(
+        nt('2024.05.01', '2024.04.30', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toBe(true)
+    expect(
+        ot('2024.04.07.1', '2024.04.07.2', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toBe(true)
+})

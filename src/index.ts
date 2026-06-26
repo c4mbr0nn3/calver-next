@@ -46,6 +46,19 @@ export function initial(settings: CalVerCycleSettings) {
         minor: 0,
     }
 
+    if (settings.format !== undefined) {
+        const fmt = parseFormat(settings.format)
+        const tagSet: ReadonlySet<string> = new Set(fmt.tags)
+        if (tagSet.has('MM') || tagSet.has('0M'))
+            result.month = currentDate.month
+        if (tagSet.has('WW') || tagSet.has('0W')) result.week = currentDate.week
+        if (tagSet.has('DD') || tagSet.has('0D')) {
+            result.month = currentDate.month
+            result.day = currentDate.day
+        }
+        return toString(result, fmt, settings.showZeroMinor ?? false)
+    }
+
     if (cycle === 'month') result.month = currentDate.month
     if (cycle === 'week') result.week = currentDate.week
     if (cycle === 'day') {
@@ -61,14 +74,28 @@ export function nt(
     older: string,
     settings: CalVerCycleSettings = { cycle: 'auto' },
 ) {
-    const n = parse(newer, { cycle: settings.cycle })
-    const o = parse(older, { cycle: settings.cycle })
+    const n = parse(newer, {
+        cycle: settings.cycle,
+        ...(settings.format !== undefined ? { format: settings.format } : {}),
+    })
+    const o = parse(older, {
+        cycle: settings.cycle,
+        ...(settings.format !== undefined ? { format: settings.format } : {}),
+    })
 
-    if (settings.cycle === 'week') {
+    const isWeek =
+        settings.cycle === 'week' ||
+        (settings.cycle === 'auto' &&
+            settings.format !== undefined &&
+            inferCycleFromFormat(parseFormat(settings.format)) === 'week')
+
+    if (isWeek) {
         if (typeof n.week !== 'number') n.week = 0
         if (typeof o.week !== 'number') o.week = 0
 
-        return (n.year >= o.year && n.week > o.week) || n.year > o.year
+        if (n.year !== o.year) return n.year > o.year
+        if (n.week !== o.week) return n.week > o.week
+        return settings.format !== undefined && n.minor > o.minor
     }
 
     const versionDateNative = new Date(
@@ -81,7 +108,10 @@ export function nt(
         typeof o.month === 'number' ? o.month - 1 : 0,
         o.day ?? 0,
     )
-    return versionDateNative.getTime() > currentDateNative.getTime()
+    const cmp = versionDateNative.getTime() - currentDateNative.getTime()
+    if (cmp > 0) return true
+    if (cmp < 0) return false
+    return settings.format !== undefined && n.minor > o.minor
 }
 
 export function ot(
@@ -97,8 +127,16 @@ export function cycle(
     settings: CalVerCycleSettings = { cycle: 'auto' },
 ) {
     const version = parse(str, settings)
+    const fmt =
+        settings.format !== undefined ? parseFormat(settings.format) : undefined
     const cycle =
-        settings.cycle !== 'auto' ? settings.cycle : findCycle(version)
+        fmt !== undefined
+            ? settings.cycle !== 'auto'
+                ? settings.cycle
+                : inferCycleFromFormat(fmt)
+            : settings.cycle !== 'auto'
+              ? settings.cycle
+              : findCycle(version)
     const currentDate = getCurrentDate()
     const next: CalVerObject = Object.assign({}, version)
     const isFuture = newerThan(version, currentDate)
@@ -137,7 +175,7 @@ export function cycle(
         next.minor += 1
     }
 
-    return toString(next)
+    return toString(next, fmt, settings.showZeroMinor ?? false)
 
     function newerThan(
         version: CalVerObject,
@@ -177,7 +215,12 @@ export function valid(
     settings: CalVerValidSettings = { cycle: 'auto' },
 ) {
     try {
-        parse(str, { cycle: settings.cycle })
+        parse(str, {
+            cycle: settings.cycle,
+            ...(settings.format !== undefined
+                ? { format: settings.format }
+                : {}),
+        })
         return str
     } catch (e) {
         throw e
@@ -214,9 +257,30 @@ export function parse(
     settings: CalVerCycleSettings = { cycle: 'auto' },
 ) {
     if (settings.format !== undefined) {
-        return parseWithFormat(str, settings)
+        const fmt = parseFormat(settings.format)
+        const re = compileFormatRegex(fmt)
+        const match = str.match(re)
+        if (match) {
+            return parseWithFormatMatch(settings, fmt, match)
+        }
+        // Format regex didn't match — fall back to standard parsing so that
+        // legacy `YYYY-M-D` style inputs are still accepted when a format is
+        // configured. Validate cycle against the format's inferred cycle.
+        const result = parseStandard(str, { cycle: 'auto' })
+        const inferred = inferCycleFromFormat(fmt)
+        if (settings.cycle !== 'auto' && settings.cycle !== inferred) {
+            throw new Error('Version and cycle mismatch.')
+        }
+        return result
     }
 
+    return parseStandard(str, settings)
+}
+
+function parseStandard(
+    str: string,
+    settings: CalVerCycleSettings,
+): CalVerObject {
     if (!CALVER_RE_SYNTAX.test(str)) {
         throw new Error('Invalid calver string: standard regex check failed')
     }
@@ -300,20 +364,11 @@ export function parse(
     }
 }
 
-function parseWithFormat(
-    str: string,
+function parseWithFormatMatch(
     settings: CalVerCycleSettings,
+    fmt: CalVerFormat,
+    match: RegExpMatchArray,
 ): CalVerObject {
-    const fmt = parseFormat(settings.format!)
-    const re = compileFormatRegex(fmt)
-    const match = str.match(re)
-
-    if (!match) {
-        throw new Error(
-            "Invalid calver string: doesn't match format " + settings.format!,
-        )
-    }
-
     const result: CalVerObject = {
         year: 0,
         minor: 0,
