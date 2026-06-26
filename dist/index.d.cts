@@ -82,13 +82,6 @@ interface CalVerCurrentDateObject {
 
 export {
     CALVER_CYCLES,
-    type CalVerCurrentDateObject,
-    type CalVerCycle,
-    type CalVerCycleSettings,
-    type CalVerFormat,
-    type CalVerFormatTag,
-    type CalVerObject,
-    type CalVerValidSettings,
     clean,
     compileFormatRegex,
     cycle,
@@ -104,4 +97,13 @@ export {
     toString,
     toStringWithFormat,
     valid,
+}
+export type {
+    CalVerCurrentDateObject,
+    CalVerCycle,
+    CalVerCycleSettings,
+    CalVerFormat,
+    CalVerFormatTag,
+    CalVerObject,
+    CalVerValidSettings,
 }

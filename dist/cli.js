@@ -17,100 +17,10 @@ var name = 'calver-next'
 var version = '25.6.0'
 var description =
     'Calendar based software versioning library with custom format string support. Fork of node-calver.'
-var type = 'module'
-var main = './dist/index.js'
-var types = './dist/index.d.ts'
-var bin = {
-    'calver-next': './dist/cli.js',
-}
-var scripts = {
-    build: 'pkgroll --target=es2020 --target=node16 --clean-dist',
-    format: 'prettier --write --ignore-unknown .',
-    lint: 'eslint .',
-    test: 'vitest run',
-    prepare: 'husky',
-}
-var exports = {
-    require: {
-        types: './dist/index.d.cts',
-        default: './dist/index.cjs',
-    },
-    import: {
-        types: './dist/index.d.ts',
-        default: './dist/index.js',
-    },
-}
-var files = ['dist/*', 'LICENSE', 'package.json']
-var browserslist = ['defaults', '> 0.1%', 'ie 10', 'not ie 9']
-var repository = {
-    type: 'git',
-    url: 'git+https://github.com/c4mbr0nn3/calver-next.git',
-}
-var keywords = [
-    'calver',
-    'calendar',
-    'versioning',
-    'semver',
-    'calver-format',
-    'calver-next',
-    'fork',
-]
-var contributors = [
-    {
-        name: 'Murat Gözel',
-        email: 'murat@gozel.com.tr',
-        url: 'https://gozel.com.tr',
-    },
-    {
-        name: 'c4mbr0nn3',
-        url: 'https://github.com/c4mbr0nn3',
-    },
-]
-var license = 'MIT'
-var bugs = {
-    url: 'https://github.com/c4mbr0nn3/calver-next/issues',
-}
-var homepage = 'https://github.com/c4mbr0nn3/calver-next#readme'
-var devDependencies = {
-    '@commitlint/cli': '^19.3.0',
-    '@commitlint/config-conventional': '^19.2.2',
-    '@commitlint/types': '^19.0.3',
-    '@eslint/js': '^9.3.0',
-    eslint: '^9.3.0',
-    husky: '^9.0.11',
-    'lint-staged': '^15.2.2',
-    pkgroll: '^2.1.0',
-    prettier: '^3.2.5',
-    typescript: '^5.4.5',
-    'typescript-eslint': '^7.9.0',
-    vitest: '^1.6.0',
-}
-var dependencies = {
-    commander: '^12.0.0',
-}
 var pkg = {
     name: name,
     version: version,
     description: description,
-    type: type,
-    main: main,
-    types: types,
-    bin: bin,
-    scripts: scripts,
-    exports: exports,
-    files: files,
-    'lint-staged': {
-        '**/*': 'prettier --write --ignore-unknown .',
-    },
-    browserslist: browserslist,
-    repository: repository,
-    keywords: keywords,
-    contributors: contributors,
-    license: license,
-    bugs: bugs,
-    homepage: homepage,
-    devDependencies: devDependencies,
-    dependencies: dependencies,
 }
 
 const program = new Command()
