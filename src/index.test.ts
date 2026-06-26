@@ -473,7 +473,7 @@ test('cycle with format', () => {
 
     // YYYY.0M.0D.MINOR — day cycle inferred, hide zero minor
     expect(
-        cycle('2000-01-05', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
+        cycle('2000.01.05', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
     ).toBe('2000.02.10')
     expect(
         cycle('2000.02.10', { cycle: 'auto', format: 'YYYY.0M.0D.MINOR' }),
@@ -484,24 +484,24 @@ test('cycle with format', () => {
 
     // YYYY.0M.0D.MINOR — show zero minor
     expect(
-        cycle('2000-01-05', {
+        cycle('2000.01.05', {
             cycle: 'auto',
             format: 'YYYY.0M.0D.MINOR',
             showZeroMinor: true,
         }),
     ).toBe('2000.02.10.0')
 
-    // YYYY-MM-DD-MINOR (c4mbr0nn3's case)
+    // YYYY.MM.DD-MINOR (c4mbr0nn3's case)
     expect(
-        cycle('2000-02-10', { cycle: 'auto', format: 'YYYY-MM-DD-MINOR' }),
-    ).toBe('2000-2-10-1')
+        cycle('2000.02.10', { cycle: 'auto', format: 'YYYY.MM.DD-MINOR' }),
+    ).toBe('2000.2.10-1')
     expect(
-        cycle('2000-01-05', {
+        cycle('2000.01.05', {
             cycle: 'auto',
-            format: 'YYYY-MM-DD-MINOR',
+            format: 'YYYY.MM.DD-MINOR',
             showZeroMinor: true,
         }),
-    ).toBe('2000-2-10-0')
+    ).toBe('2000.2.10-0')
 
     // YYYY.0W.MINOR — week cycle inferred
     expect(cycle('1999.06', { cycle: 'auto', format: 'YYYY.0W.MINOR' })).toBe(
@@ -511,18 +511,16 @@ test('cycle with format', () => {
         '2000.06.1',
     )
 
-    // YYYY.MM (month cycle, no MINOR)
+    // YYYY.MM (month cycle, no MINOR) — same period throws
     expect(cycle('1999.01', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
         '2000.2',
     )
     expect(cycle('2000.01', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
         '2000.2',
     )
-    expect(cycle('2000.02', { cycle: 'auto', format: 'YYYY.MM' })).toBe(
-        '2000.2',
-    ) // same month, no minor tag — stays same
-    // Note: without MINOR tag, same-period bumps can't increment. This
-    // is a limitation — users wanting minor bumps must include MINOR in format.
+    expect(() =>
+        cycle('2000.02', { cycle: 'auto', format: 'YYYY.MM' }),
+    ).toThrowError()
 })
 
 test('initial with format', () => {
@@ -541,16 +539,19 @@ test('initial with format', () => {
             showZeroMinor: true,
         }),
     ).toBe('2000.02.10.0')
-    expect(initial({ cycle: 'month', format: 'YYYY.MM.DD-MINOR' })).toBe(
+    expect(initial({ cycle: 'day', format: 'YYYY.MM.DD-MINOR' })).toBe(
         '2000.2.10',
     )
     expect(
         initial({
-            cycle: 'month',
+            cycle: 'day',
             format: 'YYYY.MM.DD-MINOR',
             showZeroMinor: true,
         }),
     ).toBe('2000.2.10-0')
+
+    // cycle/format mismatch throws
+    expect(() => initial({ cycle: 'month', format: 'YYYY' })).toThrowError()
 })
 
 test('valid with format', () => {
