@@ -213,6 +213,10 @@ export function parse(
     str: string,
     settings: CalVerCycleSettings = { cycle: 'auto' },
 ) {
+    if (settings.format !== undefined) {
+        return parseWithFormat(str, settings)
+    }
+
     if (!CALVER_RE_SYNTAX.test(str)) {
         throw new Error('Invalid calver string: standard regex check failed')
     }
@@ -296,7 +300,100 @@ export function parse(
     }
 }
 
-export function toString(obj: CalVerObject): string {
+function parseWithFormat(
+    str: string,
+    settings: CalVerCycleSettings,
+): CalVerObject {
+    const fmt = parseFormat(settings.format!)
+    const re = compileFormatRegex(fmt)
+    const match = str.match(re)
+
+    if (!match) {
+        throw new Error(
+            "Invalid calver string: doesn't match format " + settings.format!,
+        )
+    }
+
+    const result: CalVerObject = {
+        year: 0,
+        minor: 0,
+    }
+
+    let groupIndex = 1
+    for (const tag of fmt.tags) {
+        const captured = match[groupIndex]
+        groupIndex += 1
+
+        if (captured === undefined) {
+            // MINOR was optional and absent — minor stays 0.
+            continue
+        }
+
+        const value = parseInt(captured, 10)
+
+        switch (tag) {
+            case 'YYYY':
+                result.year = value
+                break
+            case 'MM':
+            case '0M':
+                if (value > CALVER_NUMBER_OF_MONTHS_IN_A_YEAR) {
+                    throw new Error(
+                        'The month ' +
+                            value.toString() +
+                            ' is not a valid month number for a year.',
+                    )
+                }
+                result.month = value
+                break
+            case 'WW':
+            case '0W':
+                if (value > CALVER_NUMBER_OF_WEEKS_IN_A_YEAR + 1) {
+                    throw new Error(
+                        'The week ' +
+                            value.toString() +
+                            ' is not a valid week number for a year.',
+                    )
+                }
+                result.week = value
+                break
+            case 'DD':
+            case '0D':
+                if (value > CALVER_NUMBER_OF_DAYS_IN_A_MONTH) {
+                    throw new Error(
+                        'The day ' +
+                            value.toString() +
+                            ' is not a valid day number for a month.',
+                    )
+                }
+                result.day = value
+                break
+            case 'MINOR':
+                result.minor = value
+                break
+        }
+    }
+
+    // Validate cycle against inferred or explicit cycle.
+    const inferred = inferCycleFromFormat(fmt)
+    if (settings.cycle !== 'auto') {
+        if (settings.cycle !== inferred) {
+            throw new Error('Version and cycle mismatch.')
+        }
+    }
+
+    return result
+}
+
+export function toString(
+    obj: CalVerObject,
+    fmt?: CalVerFormat,
+    showZeroMinor: boolean = false,
+): string {
+    if (fmt !== undefined) {
+        return toStringWithFormat(obj, fmt, showZeroMinor)
+    }
+
     let result = ''
 
     result += obj.year.toString(10)
@@ -334,10 +431,14 @@ export type CalVerCycle = 'year' | 'month' | 'week' | 'day' | 'auto'
 
 export interface CalVerCycleSettings {
     cycle: CalVerCycle
+    format?: string
+    showZeroMinor?: boolean
 }
 
 export interface CalVerValidSettings {
     cycle: CalVerCycle
+    format?: string
+    showZeroMinor?: boolean
 }
 
 export interface CalVerCurrentDateObject {
@@ -347,11 +448,18 @@ export interface CalVerCurrentDateObject {
     day: number
 }
 
-export {
-    type CalVerFormat,
-    type CalVerFormatTag,
+import {
     parseFormat,
     compileFormatRegex,
     inferCycleFromFormat,
     toStringWithFormat,
 } from './format.js'
+import type { CalVerFormat, CalVerFormatTag } from './format.js'
+
+export {
+    parseFormat,
+    compileFormatRegex,
+    inferCycleFromFormat,
+    toStringWithFormat,
+}
+export type { CalVerFormat, CalVerFormatTag }

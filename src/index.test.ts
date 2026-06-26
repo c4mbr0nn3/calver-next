@@ -364,3 +364,105 @@ test('toStringWithFormat', () => {
         ),
     ).toBe('2024.4.16-5')
 })
+
+test('parse with format', () => {
+    // YYYY.0M.0D.MINOR
+    expect(
+        parse('2024.04.07.1', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toStrictEqual({ year: 2024, month: 4, day: 7, minor: 1 })
+    expect(
+        parse('2024.04.07', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toStrictEqual({ year: 2024, month: 4, day: 7, minor: 0 })
+
+    // YYYY.MM-DD (day cycle, no MINOR)
+    expect(
+        parse('2024.4-16', { cycle: 'auto', format: 'YYYY.MM-DD' }),
+    ).toStrictEqual({ year: 2024, month: 4, day: 16, minor: 0 })
+
+    // YYYY.0W.MINOR (week cycle inferred)
+    expect(
+        parse('2024.06.3', { cycle: 'auto', format: 'YYYY.0W.MINOR' }),
+    ).toStrictEqual({ year: 2024, week: 6, minor: 3 })
+    expect(
+        parse('2024.06', { cycle: 'auto', format: 'YYYY.0W.MINOR' }),
+    ).toStrictEqual({ year: 2024, week: 6, minor: 0 })
+
+    // Explicit cycle overrides inference (must match)
+    expect(
+        parse('2024.04.07.1', {
+            cycle: 'day',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toStrictEqual({ year: 2024, month: 4, day: 7, minor: 1 })
+    expect(() =>
+        parse('2024.04.07.1', {
+            cycle: 'week' as const,
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toThrowError()
+
+    // Range validation still applies
+    expect(() =>
+        parse('2024.13.07.1', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toThrowError()
+    expect(() =>
+        parse('2024.04.32.1', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toThrowError()
+
+    // Format mismatch (0M requires 2 digits)
+    expect(() =>
+        parse('2024.4.07.1', {
+            cycle: 'auto',
+            format: 'YYYY.0M.0D.MINOR',
+        }),
+    ).toThrowError()
+
+    // YYYY only (year cycle)
+    expect(parse('2024', { cycle: 'auto', format: 'YYYY' })).toStrictEqual({
+        year: 2024,
+        minor: 0,
+    })
+})
+
+test('toString with format', () => {
+    // YYYY.0M.0D.MINOR — hide zero minor
+    expect(
+        toString(
+            { year: 2024, month: 4, day: 7, minor: 0 },
+            parseFormat('YYYY.0M.0D.MINOR'),
+            false,
+        ),
+    ).toBe('2024.04.07')
+    expect(
+        toString(
+            { year: 2024, month: 4, day: 7, minor: 5 },
+            parseFormat('YYYY.0M.0D.MINOR'),
+            false,
+        ),
+    ).toBe('2024.04.07.5')
+
+    // YYYY.MM-DD (no MINOR)
+    expect(
+        toString(
+            { year: 2024, month: 4, day: 16, minor: 0 },
+            parseFormat('YYYY.MM-DD'),
+            false,
+        ),
+    ).toBe('2024.4-16')
+
+    // No format — backward compatible
+    expect(toString({ year: 2024, month: 4, minor: 0 })).toBe('2024-4')
+    expect(toString({ year: 2024, month: 4, minor: 123 })).toBe('2024-4.123')
+})
