@@ -110,11 +110,5 @@ typings/
 .tern-port
 
 # Superpowers
-**/Superpowers
-
-# Superpowers workspace (internal)
+**/superpowers
 .superpowers/
-
-# Internal design docs
-docs/superpowers/
-docs/issue-26-calver-formats.md
